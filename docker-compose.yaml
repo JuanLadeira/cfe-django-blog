@@ -1,18 +1,6 @@
 version: "3.9"
 
 services:
-  mysql_db:
-    image: mysql:8.0.26
-    restart: always
-    env_file: .env
-    ports:
-      - "3007:3007"
-    expose:
-      - 3007
-    volumes:
-      - mysql-volume:/var/lib/mysql
-    profiles:
-      - mysql
   postgres_db:
     image: postgres
     restart: always
@@ -25,8 +13,7 @@ services:
       - "5431:5431"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    profiles:
-      - postgres
+
   redis_db:
     image: redis
     restart: always
@@ -37,12 +24,21 @@ services:
     volumes:
         - redis_data:/data
     entrypoint: redis-server --appendonly yes --port 6388
-    profiles:
-      - mysql
-      - postgres
-      - redis
+  web:
+    depends_on:
+      - postgres_db
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PORT=8020
+    env_file:
+      -  .env
+    ports:
+      - "8001:8020"
+    volumes:
+      - ./staticfiles:/app/staticfiles/
 
 volumes:
-  mysql-volume:
   postgres_data:
   redis_data: 
